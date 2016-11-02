@@ -1,0 +1,66 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: es-data-master01
+  annotations:
+    volume.beta.kubernetes.io/storage-class: us-east-1b
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Gi
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: es-master01
+  labels:
+    component: elasticsearch
+    role: master
+    name: es-master01
+spec:
+  template:
+    metadata:
+      labels:
+        component: elasticsearch
+        role: master
+        name: es-master01
+    spec:
+      containers:
+      - name: es-master
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - IPC_LOCK
+        image: quay.io/pires/docker-elasticsearch-kubernetes:2.4.1
+        imagePullPolicy: Always
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: "CLUSTER_NAME"
+          value: "myesdb"
+        - name: NODE_MASTER
+          value: "true"
+        - name: NODE_DATA
+          value: "false"
+        - name: HTTP_ENABLE
+          value: "false"
+        - name: ES_HEAP_SIZE
+          value: "1g"
+        ports:
+        - containerPort: 9300
+          name: transport
+          protocol: TCP
+        volumeMounts:
+        - name: storage
+          mountPath: /data
+      volumes:
+          - name: storage
+            persistentVolumeClaim:
+              claimName: es-data-master01
