@@ -1,33 +1,19 @@
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: es-data-master02
-  annotations:
-    volume.beta.kubernetes.io/storage-class: us-east-1b
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 30Gi
-
----
-
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: es-master02
+  name: es-master
   labels:
     component: elasticsearch
     role: master
-    name: es-master02
+    name: es-master
 spec:
+  replicas: 2
   template:
     metadata:
       labels:
         component: elasticsearch
         role: master
-        name: es-master02
+        name: es-master
     spec:
       containers:
       - name: es-master
@@ -36,7 +22,7 @@ spec:
           capabilities:
             add:
               - IPC_LOCK
-        image: upmcenterprises/docker-elasticsearch-kubernetes:2.4.1
+        image: upmcenterprises/docker-elasticsearch-kubernetes:2.4.1.1
         imagePullPolicy: Always
         env:
         - name: NAMESPACE
@@ -60,7 +46,11 @@ spec:
         volumeMounts:
         - name: storage
           mountPath: /data
+        - name: es-certs
+          mountPath: /elasticsearch/config/certs
       volumes:
           - name: storage
-            persistentVolumeClaim:
-              claimName: es-data-master02
+            emptyDir: {}
+          - name: es-certs
+            secret:
+              secretName: es-certs

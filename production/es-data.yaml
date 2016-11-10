@@ -1,0 +1,65 @@
+apiVersion: apps/v1alpha1
+kind: PetSet
+metadata:
+  name: es-data
+  labels:
+    component: elasticsearch
+    role: data
+    name: es-data
+spec:
+  serviceName: es-data-svc
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        component: elasticsearch
+        role: data
+        name: es-data
+        type: data
+      annotations:
+        pod.alpha.kubernetes.io/initialized: "true"
+    spec:
+      containers:
+      - name: elasticsearch
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - IPC_LOCK
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: "CLUSTER_NAME"
+          value: "myesdb"
+        - name: NODE_MASTER
+          value: "false"
+        - name: HTTP_ENABLE
+          value: "false"
+        - name: ES_HEAP_SIZE
+          value: "1g"
+        image: upmcenterprises/docker-elasticsearch-kubernetes:2.4.1.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9300
+          name: transport
+        volumeMounts:
+        - mountPath: /data
+          name: elasticsearch-data
+        - name: es-certs
+          mountPath: /elasticsearch/config/certs
+      volumes:
+      - name: es-certs
+        secret:
+          secretName: es-certs
+  volumeClaimTemplates:
+  - metadata:
+      name: elasticsearch-data
+      annotations:
+        volume.beta.kubernetes.io/storage-class: gp2storage
+    spec:
+      accessModes: [ ReadWriteOnce ]
+      resources:
+        requests:
+          storage: 30Gi

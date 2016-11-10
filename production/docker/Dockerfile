@@ -9,9 +9,5 @@ RUN ./elasticsearch/bin/plugin install lmenezes/elasticsearch-kopf
 # Install search-guard-ssl
 RUN ./elasticsearch/bin/plugin install com.floragunn/search-guard-ssl/2.4.1.16
 
-# Copy in SSL Certs
-ADD node-keystore.jks /elasticsearch/config/node-keystore.jks
-ADD truststore.jks /elasticsearch/config/truststore.jks
-
 # Override elasticsearch.yml config
 ADD elasticsearch.yml /elasticsearch/config/elasticsearch.yml
