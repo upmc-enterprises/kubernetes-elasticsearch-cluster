@@ -38,14 +38,14 @@ index:
 searchguard:
   ssl:
     transport:
-      keystore_filepath: node-keystore.jks
+      keystore_filepath: certs/node-keystore.jks
       keystore_password: changeit
-      truststore_filepath: truststore.jks
+      truststore_filepath: certs/truststore.jks
       truststore_password: changeit
       enforce_hostname_verification: false
     http:
       enabled: true
-      keystore_filepath: node-keystore.jks
+      keystore_filepath: certs/node-keystore.jks
       keystore_password: changeit
-      truststore_filepath: truststore.jks
+      truststore_filepath: certs/truststore.jks
       truststore_password: changeit
