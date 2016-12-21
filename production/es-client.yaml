@@ -5,7 +5,6 @@ metadata:
   labels:
     component: elasticsearch
     role: client
-    name: es-client
 spec:
   replicas: 2
   template:
@@ -13,7 +12,18 @@ spec:
       labels:
         component: elasticsearch
         role: client
-        name: es-client
+      annotations:
+        pod.beta.kubernetes.io/init-containers: '[
+          {
+          "name": "sysctl",
+            "image": "busybox",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["sysctl", "-w", "vm.max_map_count=262144"],
+            "securityContext": {
+              "privileged": true
+            }
+          }
+        ]'
     spec:
       containers:
       - name: es-client
@@ -22,7 +32,7 @@ spec:
           capabilities:
             add:
               - IPC_LOCK
-        image: upmcenterprises/docker-elasticsearch-kubernetes:2.4.1.1
+        image: upmcenterprises/docker-elasticsearch-kubernetes:5.1.1
         imagePullPolicy: Always
         env:
         - name: NAMESPACE
@@ -37,8 +47,8 @@ spec:
           value: "false"
         - name: HTTP_ENABLE
           value: "true"
-        - name: ES_HEAP_SIZE
-          value: "1g"
+        - name: "ES_JAVA_OPTS"
+          value: "-Xms256m -Xmx256m"
         ports:
         - containerPort: 9200
           name: http
@@ -52,8 +62,9 @@ spec:
         - name: es-certs
           mountPath: /elasticsearch/config/certs
       volumes:
-          - name: storage
-            emptyDir: {}
+          - emptyDir:
+              medium: ""
+            name: "storage"
           - name: es-certs
             secret:
               secretName: es-certs
