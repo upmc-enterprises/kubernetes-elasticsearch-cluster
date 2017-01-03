@@ -1,5 +1,5 @@
-apiVersion: apps/v1alpha1
-kind: PetSet
+apiVersion: apps/v1beta1
+kind: StatefulSet
 metadata:
   name: es-data
   labels:
@@ -8,7 +8,7 @@ metadata:
     name: es-data
 spec:
   serviceName: es-data-svc
-  replicas: 3
+  replicas: 5
   template:
     metadata:
       labels:
@@ -17,7 +17,6 @@ spec:
         name: es-data
         type: data
       annotations:
-        pod.alpha.kubernetes.io/initialized: "true"
         pod.beta.kubernetes.io/init-containers: '[
           {
           "name": "sysctl",
