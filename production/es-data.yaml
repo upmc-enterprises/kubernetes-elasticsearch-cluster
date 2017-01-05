@@ -1,5 +1,5 @@
-apiVersion: apps/v1alpha1
-kind: PetSet
+apiVersion: apps/v1beta1
+kind: StatefulSet
 metadata:
   name: es-data
   labels:
@@ -8,7 +8,7 @@ metadata:
     name: es-data
 spec:
   serviceName: es-data-svc
-  replicas: 3
+  replicas: 5
   template:
     metadata:
       labels:
@@ -17,7 +17,17 @@ spec:
         name: es-data
         type: data
       annotations:
-        pod.alpha.kubernetes.io/initialized: "true"
+        pod.beta.kubernetes.io/init-containers: '[
+          {
+          "name": "sysctl",
+            "image": "busybox",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["sysctl", "-w", "vm.max_map_count=262144"],
+            "securityContext": {
+              "privileged": true
+            }
+          }
+        ]'
     spec:
       containers:
       - name: elasticsearch
@@ -37,9 +47,9 @@ spec:
           value: "false"
         - name: HTTP_ENABLE
           value: "false"
-        - name: ES_HEAP_SIZE
-          value: "1g"
-        image: upmcenterprises/docker-elasticsearch-kubernetes:2.4.1.1
+        - name: "ES_JAVA_OPTS"
+          value: "-Xms1024m -Xmx1024m"
+        image: upmcenterprises/docker-elasticsearch-kubernetes:5.1.1
         imagePullPolicy: Always
         ports:
         - containerPort: 9300
@@ -62,4 +72,4 @@ spec:
       accessModes: [ ReadWriteOnce ]
       resources:
         requests:
-          storage: 30Gi
+          storage: 100Gi

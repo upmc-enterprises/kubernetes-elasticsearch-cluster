@@ -5,15 +5,25 @@ metadata:
   labels:
     component: elasticsearch
     role: master
-    name: es-master
 spec:
-  replicas: 2
+  replicas: 3
   template:
     metadata:
       labels:
         component: elasticsearch
         role: master
-        name: es-master
+      annotations:
+        pod.beta.kubernetes.io/init-containers: '[
+          {
+          "name": "sysctl",
+            "image": "busybox",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["sysctl", "-w", "vm.max_map_count=262144"],
+            "securityContext": {
+              "privileged": true
+            }
+          }
+        ]'
     spec:
       containers:
       - name: es-master
@@ -22,7 +32,7 @@ spec:
           capabilities:
             add:
               - IPC_LOCK
-        image: upmcenterprises/docker-elasticsearch-kubernetes:2.4.1.1
+        image: upmcenterprises/docker-elasticsearch-kubernetes:5.1.1
         imagePullPolicy: Always
         env:
         - name: NAMESPACE
@@ -33,12 +43,14 @@ spec:
           value: "myesdb"
         - name: NODE_MASTER
           value: "true"
+        - name: NODE_INGEST
+          value: "false"
         - name: NODE_DATA
           value: "false"
         - name: HTTP_ENABLE
           value: "false"
-        - name: ES_HEAP_SIZE
-          value: "1g"
+        - name: "ES_JAVA_OPTS"
+          value: "-Xms1024m -Xmx1024m"
         ports:
         - containerPort: 9300
           name: transport
@@ -49,8 +61,9 @@ spec:
         - name: es-certs
           mountPath: /elasticsearch/config/certs
       volumes:
-          - name: storage
-            emptyDir: {}
+          - emptyDir:
+              medium: ""
+            name: "storage"
           - name: es-certs
             secret:
               secretName: es-certs
