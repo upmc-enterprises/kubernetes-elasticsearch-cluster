@@ -1,0 +1,75 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: es-data
+  labels:
+    component: elasticsearch
+    role: data
+    name: es-data
+spec:
+  serviceName: es-data-svc
+  replicas: 5
+  template:
+    metadata:
+      labels:
+        component: elasticsearch
+        role: data
+        name: es-data
+        type: data
+      annotations:
+        pod.beta.kubernetes.io/init-containers: '[
+          {
+          "name": "sysctl",
+            "image": "busybox",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["sysctl", "-w", "vm.max_map_count=262144"],
+            "securityContext": {
+              "privileged": true
+            }
+          }
+        ]'
+    spec:
+      containers:
+      - name: elasticsearch
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - IPC_LOCK
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: "CLUSTER_NAME"
+          value: "myesdb"
+        - name: NODE_MASTER
+          value: "false"
+        - name: HTTP_ENABLE
+          value: "false"
+        - name: "ES_JAVA_OPTS"
+          value: "-Xms1024m -Xmx1024m"
+        image: upmcenterprises/docker-elasticsearch-kubernetes:5.1.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9300
+          name: transport
+        volumeMounts:
+        - mountPath: /data
+          name: elasticsearch-data
+        - name: es-certs
+          mountPath: /elasticsearch/config/certs
+      volumes:
+      - name: es-certs
+        secret:
+          secretName: es-certs
+  volumeClaimTemplates:
+  - metadata:
+      name: elasticsearch-data
+      annotations:
+        volume.beta.kubernetes.io/storage-class: default
+    spec:
+      accessModes: [ ReadWriteOnce ]
+      resources:
+        requests:
+          storage: 100Gi
