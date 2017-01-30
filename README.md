@@ -20,6 +20,8 @@ You can change this yourself in the deployment descriptors available in this rep
 * Kubernetes cluster with **alpha features enabled** (tested with v1.5.1 on top of [Vagrant + CoreOS](https://github.com/pires/kubernetes-vagrant-coreos-cluster))
 * `kubectl` configured to access your cluster master API Server
 
+_NOTE: A petset option is available as well for any cluster running Kubernetes v1.4.X_
+
 ## Build images (optional)
 
 Providing your own version of [the images automatically built from this repository](https://github.com/pires/docker-elasticsearch-kubernetes) will not be supported. This is an *optional* step. You have been warned.
@@ -43,7 +45,9 @@ kubectl create -f es-client.yaml
 Wait until `es-client` is provisioned, and
 
 ```
-kubectl create -f es-data.yaml
+kubectl create -f es-data-statefulset.yaml (v1.5.X)
+OR
+kubectl create -f es-data-petset.yaml (v1.4.X)
 ```
 
 Wait until `es-data` is provisioned.
