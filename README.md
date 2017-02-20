@@ -33,6 +33,7 @@ Providing your own version of [the images automatically built from this reposito
 ```
 kubectl create -f es-discovery-svc.yaml
 kubectl create -f es-svc.yaml
+kubectl create -f es-data-svc.yaml
 kubectl create -f es-master.yaml
 ```
 

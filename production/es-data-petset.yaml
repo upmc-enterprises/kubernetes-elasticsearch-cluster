@@ -17,6 +17,7 @@ spec:
         name: es-data
         type: data
       annotations:
+        pod.alpha.kubernetes.io/initialized: "true"
         pod.beta.kubernetes.io/init-containers: '[
           {
           "name": "sysctl",
